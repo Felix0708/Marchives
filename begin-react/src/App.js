@@ -34,17 +34,20 @@ function App() {
     {
       id: 1,
       username: 'velopert',
-      email: 'public.velopert@gmail.com'
+      email: 'public.velopert@gmail.com',
+      active: true
     },
     {
       id: 2,
       username: 'tester',
-      email: 'tester@example.com'
+      email: 'tester@example.com',
+      active: true
     },
     {
       id: 3,
       username: 'liz',
-      email: 'liz@example.com'
+      email: 'liz@example.com',
+      active: true
     }
   ]);
 
@@ -71,7 +74,22 @@ function App() {
     });
     nextId.current += 1;
   };
-
+  const onRemove = id => {
+    // user.id 가 파라미터로 일치하지 않는 원소만 추출해서 새로운 배열을 만듬
+    // = user.id 가 id 인 것을 제거함
+    setUsers(users.filter(user => user.id !== id));
+  };
+  const onToggle = id => {
+    setUsers(
+      users.map(user =>
+        user.id === id ? { ...user, active: !user.active } : user 
+        // JavaScript에서 세 개의 피연산자를 취할 수 있는 유일한 연산자입니다. 
+        // 맨 앞에 조건문 들어가고. 그 뒤로 물음표(?)와 조건이 참truthy이라면 실행할 식이 물음표 뒤로 들어갑니다. 
+        // 바로 뒤로 콜론(:)이 들어가며 조건이 거짓falsy이라면 실행할 식이 마지막에 들어갑니다. 
+        // 보통 if 명령문의 단축 형태로 쓰입니다.
+      )
+    );
+  };
   return (
     <>
       <Wrapper>
@@ -89,7 +107,7 @@ function App() {
       <Counter />
       <InputSample />
       {/* <UserList /> */}
-      <UserList users={users} />;
+      <UserList users={users} onRemove={onRemove} onToggle={onToggle} />;
       <CreateUser
         username={username}
         email={email}
