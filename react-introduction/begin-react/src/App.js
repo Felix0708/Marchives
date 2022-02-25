@@ -1,11 +1,14 @@
 // import React, { useRef, useState, useMemo, useCallback, } from 'react';
-import React, { useRef, useMemo, useCallback, useReducer, } from 'react';
+// import React, { useRef, useMemo, useCallback, useReducer, } from 'react';
+import React, { useMemo, useReducer, } from 'react';
 import Hello from './Hello';
 import Wrapper from './Wrapper';
 import Counter from './Counter';
 import InputSample from './InputSample';
 import UserList from './UserList';
 import CreateUser from './CreateUser';
+// import useInputs from './hooks/useInputs';
+import produce from 'immer';
 import './App.css';
 
 function countActiveUsers(users) {
@@ -14,10 +17,10 @@ function countActiveUsers(users) {
 }
 
 const initialState = {
-  inputs: {
-    username: '',
-    email: ''
-  },
+  // inputs: {
+  //   username: '',
+  //   email: ''
+  // },
   users: [
     {
       id: 1,
@@ -50,33 +53,49 @@ function reducer(state, action) {
         }
       };
     case 'CREATE_USER':
-      return {
-        inputs: initialState.inputs,
-        users: state.users.concat(action.user)
-      };
+      // return {
+      //   // inputs: initialState.inputs,
+      //   users: state.users.concat(action.user)
+      // };
+      return produce(state, draft => {
+        draft.users.push(action.user);
+      });
     case 'TOGGLE_USER':
-      return {
-        ...state,
-        users: state.users.map(user =>
-          user.id === action.id ? { ...user, active: !user.active } : user
-        )
-      };
+      // return {
+      //   ...state,
+      //   users: state.users.map(user =>
+      //     user.id === action.id ? { ...user, active: !user.active } : user
+      //   )
+      // };
+      return produce(state, draft => {
+        const user = draft.users.find(user => user.id === action.id);
+        user.active = !user.active;
+      });
     case 'REMOVE_USER':
-      return {
-        ...state,
-        users: state.users.filter(user => user.id !== action.id)
-      };
+      // return {
+      //   ...state,
+      //   users: state.users.filter(user => user.id !== action.id)
+      // };
+      return produce(state, draft => {
+        const index = draft.users.findIndex(user => user.id === action.id);
+        draft.users.splice(index, 1);
+      });
     default:
       return state;
   }
 }
-
+// UserDispatch 라는 이름으로 내보내줍니다.
+export const UserDispatch = React.createContext(null);
 
 function App() {
+  // const [{ username, email }, onChange, onReset] = useInputs({
+  //   username: '',
+  //   email: ''
+  // });
   const [state, dispatch] = useReducer(reducer, initialState);
-  const nextId = useRef(4);
+  // const nextId = useRef(4);
   const { users } = state;
-  const { username, email } = state.inputs;
+  // const { username, email } = state.inputs;
 
   const name = 'react';
   const style = {
@@ -84,7 +103,7 @@ function App() {
     color: 'aqua',
     fontSize: 24, // 기본 단위 px
     padding: '1rem' // 다른 단위 사용 시 문자열로 설정
-  }
+  };
 
   // const [inputs, setInputs] = useState({
   //   username: '',
@@ -99,14 +118,14 @@ function App() {
   //   })
   // }
 
-  const onChange = useCallback(e => {
-    const { name, value } = e.target;
-    dispatch({
-      type: 'CHANGE_INPUT',
-      name,
-      value
-    });
-  }, []);
+  // const onChange = useCallback(e => {
+  //   const { name, value } = e.target;
+  //   dispatch({
+  //     type: 'CHANGE_INPUT',
+  //     name,
+  //     value
+  //   });
+  // }, []);
   // const onChange = useCallback(e => {
   //   const { name, value } = e.target;
   //   setInputs(inputs=> ({
@@ -173,17 +192,18 @@ function App() {
   //   });
   //   nextId.current += 1;
   // }, [username, email]);
-  const onCreate = useCallback(() => {
-    dispatch({
-      type: 'CREATE_USER',
-      user: {
-        id: nextId.current,
-        username,
-        email
-      }
-    });
-    nextId.current += 1;
-  }, [username, email]);
+  // const onCreate = useCallback(() => {
+  //   dispatch({
+  //     type: 'CREATE_USER',
+  //     user: {
+  //       id: nextId.current,
+  //       username,
+  //       email
+  //     }
+  //   });
+  //   onReset();
+  //   nextId.current += 1;
+  // }, [username, email, onReset]);
 
   // const onRemove = id => {
   //   // user.id 가 파라미터로 일치하지 않는 원소만 추출해서 새로운 배열을 만듬
@@ -195,12 +215,12 @@ function App() {
   //     // = user.id 가 id 인 것을 제거함
   //     setUsers(users => users.filter(user => user.id !== id));
   //   },[]);
-  const onRemove = useCallback(id => {
-    dispatch({
-      type: 'REMOVE_USER',
-      id
-    });
-  }, []);
+  // const onRemove = useCallback(id => {
+  //   dispatch({
+  //     type: 'REMOVE_USER',
+  //     id
+  //   });
+  // }, []);
 
   // const onToggle = id => {
   //   setUsers(
@@ -220,17 +240,17 @@ function App() {
   //       )
   //     );
   //   },[]);
-  const onToggle = useCallback(id => {
-    dispatch({
-      type: 'TOGGLE_USER',
-      id
-    });
-  }, []);
+  // const onToggle = useCallback(id => {
+  //   dispatch({
+  //     type: 'TOGGLE_USER',
+  //     id
+  //   });
+  // }, []);
 
   const count = useMemo(() => countActiveUsers(users), [users]);
 
   return (
-    <>
+    <UserDispatch.Provider value={dispatch}>
       <Wrapper>
         {/* 주석은 화면에 보이지 않습니다 */}
         /* 중괄호로 감싸지 않으면 화면에 보입니다 */
@@ -246,15 +266,16 @@ function App() {
       <Counter />
       <InputSample />
       {/* <UserList /> */}
-      <UserList users={users} onRemove={onRemove} onToggle={onToggle} />;
       <CreateUser
-        username={username}
-        email={email}
-        onChange={onChange}
-        onCreate={onCreate}
+        // username={username}
+        // email={email}
+        // onChange={onChange}
+        // onCreate={onCreate}
       />
+      {/* <UserList users={users} onRemove={onRemove} onToggle={onToggle} />; */}
+      <UserList users={users} />;
       <div>활성사용자 수 : {count}</div>
-    </>
+    </UserDispatch.Provider>
   );
 }
 
